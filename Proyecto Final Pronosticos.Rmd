@@ -1,0 +1,697 @@
+---
+title: "Proyecto Final"
+author: "Jero Zetina"
+date: "2024-11-13"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Proyecto Final Pronósticos Financieros
+
+## Primera Sección
+
+##### Este proyecto tiene como objetivo analizar una serie de tiempo y usar
+
+##### diferentes metodos (siete en total) de pronosticos para encontrar cual
+
+##### es más apto y capaz de realizar un pronóstico fiable, por la naturaleza
+
+##### de los datos de la serie y de las características de y usos del modelo.
+
+##### Se analizó una serie de Indices de Precios al Consumidor, los datos son
+
+##### cambios porcentuales mensuales del índice contra el peridodo anterior.
+
+##### El periodo comprende desde Enero del 2000 hasta septiembre 2024 (298
+
+##### observaciones)
+
+##### Con los resultados obtenidos pudimos concluir que el modelo que más
+
+##### capacidad de predicción tuvo fue el SARIMA, nuestro criterio de
+
+##### selección fue el error cuadrático medio, cabe recalcar que mantuvimos
+
+##### una diferencia entre el pronóstico futuro del modelo, del pronóstico
+
+##### comparado con los datos observados en la serie, en este caso con los
+
+##### últimos 64 periodos o meses, de esta forma se puede comparar el dato
+
+##### observado en la serie contra el pronóstico realizado por el modelo, y
+
+##### esto nos ayuda a tener mayor certeza del buen funcionamiento del método,
+
+##### además, de forma visual se puede observar este similitud de
+
+##### comportamiento de los pronósticos del modelo SARIMA con el de nuestra
+
+##### serie analizada, esto nos dice la alta fiabilidad del método para este
+
+##### caso.
+
+#### La Gráfica de los resultados de los modelos contra datos observado:
+
+![](images/clipboard-3894698693.png)
+
+#### Clasificacion de los modelos:
+
+![](images/clipboard-1826279982.png){width="481"}
+
+## Segunda Sección
+
+##### Información de la Serie de Tiempo:
+
+##### La serie de tiempo corresponde al Índice Nacional de Precios al
+
+##### Consumidor (INPC) de México, un indicador que mide la variación
+
+##### porcentual mensual de los precios de bienes y servicios representativos
+
+##### del consumo en los hogares. Las unidades están en porcentajes,
+
+##### representando el cambio relativo respecto al periodo inmediato anterior.
+
+##### Información clave: Fuente: Instituto Nacional de Estadística y Geografía
+
+##### (INEGI). Definición: El INPC mide la inflación, indicando cambios en el
+
+##### poder adquisitivo y el costo de vida. Periodo: 2000-2024. Contexto
+
+##### económico: Crecimiento promedio: Durante este periodo, el INPC ha
+
+##### mostrado una inflación promedio mensual cercana al 0.4% (variable según
+
+##### el cálculo exacto). Eventos históricos relacionados: 2008-2009: Crisis
+
+##### financiera global, aumento en precios de alimentos y energía. 2017:
+
+##### Liberación del precio de las gasolinas ("gasolinazo"), impulsando la
+
+##### inflación. 2020: Pandemia de COVID-19, alteraciones en la oferta y
+
+##### demanda de bienes, presionando precios. 2022-2023: Efectos de la
+
+##### inflación global, subida de tasas de interés por parte del Banco de
+
+##### México. Estos factores reflejan cómo eventos locales y globales impactan
+
+##### el INPC, mostrando sensibilidad a políticas fiscales, shocks de oferta,
+
+##### y cambios económicos significativos.
+
+##### A partir de 1968 inicia formalmente el cálculo del INPC estableciendo
+
+##### por primera vez una base fija de comparación, la base actual de
+
+##### referencia corresponde a la segunda quincena de julio de 2018. Desde sus
+
+##### inicios hasta junio de 2011, los Índices Nacionales de Precios fueron
+
+##### calculados por el Banco de México, sin embargo, con la entrada en vigor
+
+##### de la Ley del Sistema Nacional de Información Estadística y Geográfica
+
+##### se otorgó al Instituto Nacional de Estadística y Geografía (INEGI) Las
+
+##### caracteristicas de este indicador son las siguiente: Canasta- Bienes y
+
+##### servicios que consumen las familias. Precios- A los que el consumidor
+
+##### adquiere los bienes y servicios que consume. Factor de Ponderación-
+
+##### Gasto de las familias. Fuente de la Ponderación - Encuesta Nacional de
+
+##### Ingreso y Gasto de los Hogares Estacional de un año definido. Número de
+
+##### Genéricos- 292 Ámbito de Análisis- Consumo de los Hogares.
+
+## Tercera Sección
+
+##### Codigo y procedimientos de los metodos:
+
+##### Regresion Lineal Suavizacion Exponencial Simple: Holt y Holt -
+
+##### amortiguado Suavizacion Exponencial Estacional: Holt Winters aditiva y
+
+##### Holt Winters multiplicativa ARIMA Estacional
+
+### Cargamos la informacion:
+
+```{r}
+rm(list=ls())
+
+library(tseries)
+library(tidyverse)
+library(readxl)
+library(forecast)
+
+setwd("C:/Users/GuJe834/Desktop/OneDrive/Documentos/Pronosticos Fin/ProyectoPronosticosFin")
+
+INPC_BD <- read_excel("SerieCPI%vspriorP.xlsx", sheet="2000")
+INPCts <- ts(INPC_BD$Index, start= c(2000,1), frequency = 12)
+```
+
+#### Graficamos la serie:
+
+```{r}
+autoplot(INPCts)+
+  ggtitle("Indice de precios al Consumidor")
+```
+
+## Regresion Lineal:
+
+##### La regresión lineal es una herramienta estadística que permite analizar
+
+##### la relación entre una variable dependiente y una o más variables
+
+##### independientes. Su objetivo principal es desarrollar un modelo
+
+##### matemático que explique cómo las variables independientes afectan a la
+
+##### variable dependiente y, a su vez, permite realizar predicciones.
+
+![](images/clipboard-668878960.png){width="392"}
+
+##### Ventajas:
+
+##### 1. Simplicidad: Es fácil de entender e interpretar.
+
+##### 2. Predicciones: Permite realizar estimaciones confiables bajo las condiciones adecuadas.
+
+##### 3. Identificación de relaciones: Ayuda a cuantificar y entender cómo las variables independientes afectan a la dependiente.
+
+##### Desventajas:
+
+##### 1. Sensibilidad a las suposiciones: Si las suposiciones del modelo no se cumplen, los resultados pueden ser erróneos.
+
+##### 2. Linealidad: Solo es aplicable si la relación entre yyy y xxx es aproximadamente lineal.
+
+##### 3. Influencia de outliers: Observaciones extremas pueden distorsionar los resultados.
+
+##### La serie parece mostrar estacionalidad, de cualquier forma vamos a
+
+##### estimar una regresión lineal, modelando su tendencia y su
+
+##### estacionalidad:
+
+```{r}
+reg <- tslm(INPCts ~ trend +  season)
+summary(reg)
+```
+
+##### Al analizar los resultados, se concluye que la regresión lineal puede explicar el 44.2% de la variabilidad en la serie de cambios de precios al consumidor, según el valor de su R cuadrada ajustada. Sin embargo, este dato es poco confiable para pronósticos debido a la naturaleza de la serie y las limitaciones del método, teniendo como efecto un valor muy bajo de explicación.
+
+##### Deseo rechazar la hipotesis nula de estacionalidad, contamos con varios p-value menores a niveles de significancia del 1% esto nos dice que con que una serie sea significativa podemos concluir que si existe estacionalidad.
+
+##### La tendencia no es significativa ya que mi valor-p es mayor a los tres niveles de significancia.
+
+##### Pronósticamos 10 periodos en adelante:
+
+```{r}
+
+pron_reg <- forecast(reg, h=10)
+summary(pron_reg)
+```
+
+##### Gráficamos el pronóstico
+
+```{r}
+autoplot(pron_reg)
+
+```
+
+## ---Suavizacion Exponencial---
+
+### Suavizacion Exponencial Simple:
+
+##### La suavización exponencial simple es una técnica utilizada para pronosticar series de tiempo sin tendencia ni estacionalidad, donde la media cambia lentamente con el tiempo.
+
+![](images/clipboard-2752235772.png){width="451"}
+
+##### Características principales:
+
+##### • Asignación de pesos: Otorga mayor peso a las observaciones recientes y disminuye progresivamente el peso de las más antiguas.
+
+##### • Actualización continua: Ajusta el nivel de la serie conforme se incorporan nuevos datos, permitiendo detectar y reflejar cambios graduales en el nivel.
+
+##### • Uso específico: Es adecuada cuando la serie no muestra patrones complejos como tendencias o estacionalidades.
+
+##### Ventajas:
+
+##### 1. Simplicidad: Es fácil de implementar y comprender.
+
+##### 2. Adaptación inmediata: Responde rápidamente a cambios en el nivel de la serie.
+
+##### Desventajas:
+
+##### 1. Limitación en horizonte de pronóstico: Solo es útil para pronosticar el siguiente periodo inmediato (h = 1). Para periodos futuros (h \> 1), el pronóstico se vuelve constante o "plano".
+
+##### Realizamos los pronosticos y vemos los resultados:
+
+```{r}
+pron_SES <- ses(INPCts, h=10)
+summary(pron_SES)
+```
+
+### Holt o Suavizacion Exponencial con Tendencia:
+
+##### El método de Holt, o suavización exponencial doble, se utiliza para pronosticar series de tiempo que muestran una tendencia lineal, donde tanto el nivel como la tasa de crecimiento cambian con el tiempo.
+
+![](images/clipboard-3550002694.png){width="497"}
+
+##### Características principales:
+
+##### • Adecuado para datos sin estacionalidad: Funciona mejor cuando no hay patrones estacionales, pero sí una tendencia constante.
+
+##### Ventajas:
+
+##### 1. Mayor robustez: Es más flexible que la suavización exponencial simple, ya que considera tendencias.
+
+##### 2. Pronósticos claros: Útil para series con tendencias claras y para proyecciones de corto plazo.
+
+##### Desventajas:
+
+##### 1. Tendencia infinita: El modelo asume que la tendencia continuará indefinidamente, lo cual no siempre es realista para horizontes largos.
+
+##### 2. Limitado en escenarios complejos: No es adecuado para series con cambios abruptos o componentes estacionales.
+
+```{r}
+pron_holt <- holt(INPCts, h=10) 
+summary(pron_holt)
+```
+
+### Holt Amortiguado o Suavizacion Exponencial con Tendencia Amortiguado:
+
+##### El método de suavización exponencial con tendencia amortiguada es una variante del método de Holt, diseñado para pronosticar series de tiempo con una tendencia que no se mantendrá constante en el futuro. En este modelo, la tendencia inicial se ajusta progresivamente mediante un factor de amortiguamiento para evitar incrementos o decrecimientos infinitos.
+
+![](images/clipboard-1211615005.png)
+
+##### Características principales:
+
+##### • Amortiguamiento de la tendencia: La tasa de crecimiento se reduce a lo largo del tiempo mediante un parámetro de amortiguamiento ϕ\\phiϕ, donde 0\<ϕ\<10 \< \\phi \< 10\<ϕ\<1.
+
+##### • Pronósticos más realistas: El método asume que la tendencia disminuirá gradualmente en lugar de extenderse indefinidamente.
+
+##### Ventajas:
+
+##### 1. Evita tendencias irreales: La amortiguación hace que la tendencia no crezca o decrezca indefinidamente, lo cual es más adecuado para muchas series temporales.
+
+##### 2. Adaptabilidad: Es útil para series con una tendencia inicial que probablemente se desacelere o se estabilice.
+
+##### 3. Proyecciones más precisas: Tiende a generar pronósticos más exactos en escenarios donde la tendencia disminuye con el tiempo.
+
+##### Desventajas:
+
+##### 1. Sensibilidad al parámetro de amortiguamiento: Si ϕ\\phiϕ es cercano a 1, el modelo se comporta como el método de Holt sin amortiguamiento, perdiendo su principal ventaja.
+
+##### 2. Mayor complejidad: Su implementación requiere una calibración adecuada de ϕ\\phiϕ, α\\alphaα y β\\betaβ, lo cual puede complicar su uso.
+
+```{r}
+pron_holta <- holt(INPCts, h=10, damped= TRUE) 
+summary(pron_holta)
+```
+
+##### Graficamos los pronosticos y comparamos:
+
+```{r}
+autoplot(pron_SES, PI=FALSE,series="Simple")+
+  autolayer(pron_holt, PI=FALSE, series="Holt")+
+  autolayer(pron_holta, PI=FALSE, series="Holt amortiguado")
+
+```
+
+##### Los 4 modelos nos arrojaron pronósticos para los siguientes 10 periodos, tomando el último periodo, en este caso Julio 2025 con un nivel de confianza del 95% podemos decir que lso pronosticos de cambio porcentual para dicho dato serán:
+
+![](images/clipboard-4245856047.png)
+
+
+## ---Suavizacion Exponencial Estacional---
+
+##### Incluye la Suavizacion Exponencial Estacional Aditiva y la
+
+##### Multiplicativa, adelante se explican sus atributos:
+
+##### Vamos hacer un analisis grafico para determinar si existe estacionalidad o no. Funciones ggseasonplot() y ggsubseriesplot() graficas que permitan identificar patrones estacionales.
+
+```{r}
+
+ggseasonplot(INPCts)+
+  ggtitle("Indice de precios al Consumidor")
+```
+
+```{r}
+ggsubseriesplot(INPCts)+
+  ggtitle("Indice de precios al Consumidor")
+```
+
+##### Usaremos metodos para descomponer los elementos de la serie y para encontrar la autocorrelacion de la serie con sus valores retardados.
+
+##### Diagrama de descomposición estacional y el gráfico de autocorrelación (ACF Plot)
+
+##### Un gráfico de descomposición estacional separa los datos en su tendencia, estacionalidad y componentes residuales. Para ello se utilizan métodos como el de función decompose()
+
+##### Un gráfico de autocorrelación muestra la correlación de la serie temporal con sus propios valores retardados. Si hay estacionalidad, se veran picos en el gráfico ACF a intervalos regulares de retardo.
+
+##### Seasonal Decomposition Plot para el INPC
+
+```{r}
+INPC_decomposed <- decompose(INPCts, type = "multiplicative")  # or 'additive'
+plot(INPC_decomposed)
+```
+
+##### ACF Plot para INPC
+
+```{r}
+acf(INPCts, main = "ACF Plot of INPC")
+```
+
+##### Conclusion: Existe estacionalidad en la serie de Indice de Precios al Consumidor. Lo podemos ver de forma grafica en estas herramientas, por ejemplo en "seasonality" de funcion decompose, sigue un patron de movimientos durante la serie.
+
+#### Pronosticamos los metodos de Suavización Exponencial con Estacionalidad y vemos los resultados
+
+### Holt Winters Aditivo:
+
+##### El método aditivo de Holt-Winters es una técnica de suavización exponencial diseñada para series temporales con estacionalidad constante a lo largo del tiempo. Es especialmente útil cuando la serie presenta una tendencia lineal y un patrón estacional cuya magnitud no cambia significativamente.
+
+![](images/clipboard-1768344195.png)
+
+##### Características principales:
+
+##### • Estacionalidad aditiva: El patrón estacional se expresa en términos absolutos y se suma o resta del nivel base de la serie.
+
+##### • Descomposición de la serie: La serie se divide en tres componentes:
+
+##### 1. Nivel: Representa el valor promedio ajustado por la estacionalidad.
+
+##### 2. Tendencia: Captura el cambio constante en el nivel.
+
+##### 3. Estacionalidad: Un patrón repetitivo que suma aproximadamente cero en un año.
+
+##### • Adecuación: Ideal para series donde los efectos estacionales permanecen estables, independientemente de los cambios en nivel o tendencia.
+
+##### Ventajas:
+
+##### 1. Simplicidad: Permite incorporar efectos estacionales fácilmente.
+
+##### 2. Eficacia: Funciona bien para series con variaciones estacionales constantes.
+
+##### Desventajas:
+
+##### 1. Mayor cantidad de datos: Requiere suficiente información para estimar los factores estacionales con precisión.
+
+##### 2. Menos común: Las series con estacionalidad aditiva suelen ser menos frecuentes en comparación con las de estacionalidad multiplicativa.
+
+```{r}
+ pron_hwa <- hw(INPCts, h=10, seasonal="additive") 
+summary(pron_hwa)
+```
+
+### ?? Holt Winters Multiplicativo:
+
+##### El método multiplicativo de Holt-Winters es una técnica de suavización exponencial utilizada para series temporales con estacionalidad creciente proporcional al nivel de la serie. Es ideal para series donde la magnitud del patrón estacional aumenta a medida que crece la media.
+
+![](images/clipboard-1280714228.png)
+
+##### Características principales:
+
+##### • Estacionalidad multiplicativa: El componente estacional se expresa como un porcentaje o factor relativo, en lugar de un valor absoluto.
+
+##### • Descomposición de la serie:
+
+##### 1. Nivel: Ajustado dividiendo por el componente estacional.
+
+##### 2. Tendencia: Representa el cambio constante en el nivel.
+
+##### 3. Estacionalidad: Un patrón que escala con el nivel de la serie.
+
+##### • Adecuación: Recomendado para series con tendencia lineal y un patrón estacional cuya magnitud crece junto con el nivel.
+
+##### Ventajas:
+
+##### 1. Adaptación a patrones crecientes: Maneja eficientemente series donde los efectos estacionales aumentan proporcionalmente al crecimiento de la media.
+
+##### 2. Flexibilidad: Más útil que el método aditivo en series con variaciones estacionales amplificadas.
+
+##### Desventajas:
+
+##### 1. Mayor demanda de datos: Requiere una cantidad significativa de datos para estimar con precisión los factores estacionales.
+
+
+INPCts <- na.omit(INPCts)
+pron_hwm <- hw(INPCts, h=10, seasonal="multiplicative")
+ Error in ets(x, "MAM", alpha = alpha, beta = beta,
+gamma = gamma, phi = phi, : Inappropriate model for data with negative
+or zero values
+
+#### El modelo aditivo no tuvo problemas para relizar el pronostico, al contar con una serie de cambios porcentuales y al tener datos negativos el modelo de Holt Winters Multiplicativo no puede tratar estos datos, eliminando dichos datos el pronostico se veria sesgado, por lo que se opto por no utilizar dicho metodo. 
+
+## ARIMA
+
+##### Los modelos SARIMA son una extensión de los modelos ARIMA diseñados para trabajar con series de tiempo que presentan estacionalidad, es decir, patrones que se repiten periódicamente (como mensualmente o trimestralmente). Se utilizan para generar pronósticos financieros más precisos cuando se identifican componentes estacionales en los datos.
+
+##### Características principales:
+
+##### • Diferenciación estacional: Se utiliza para convertir una serie con estacionalidad en estacionaria, calculando la diferencia entre una observación y la correspondiente del mismo periodo del año anterior.
+
+#### Ventajas:
+
+#### 1. Alta precisión en pronósticos de corto plazo.
+
+#### 2. Flexibilidad para representar distintas características de las series temporales.
+
+#### 3. Posibilidad de incorporar estacionalidad explícitamente.
+
+#### Desventajas:
+
+#### 1. Requieren muchos datos: Series estacionales necesitan al menos 6-10 años de observaciones.
+
+#### 2. Complejidad en el ajuste: La construcción y actualización de estos modelos puede ser laboriosa.
+
+#### 3. Altos costos de implementación: Requieren mayor inversión en tiempo y recursos comparados con métodos simples como la suavización exponencial.
+
+#### Para poder aplicar el modelo SARIMA debemos contar con una serie de tiempo estacionaria, esta es aquella cuyas propiedades como la media, la varianza, etc., permanecen constantes a lo largo del tiempo En otras palabras, es una serie cuyas propiedades estadísticas son independientes del momento en que se observan. Una serie temporal estacionaria tiene una varianza constante y siempre vuelve a la media a largo plazo.
+
+#### Aplicamos una diferencia estacional Vamos a buscar el orden de integracion = cuantas veces lo debemos diferenciar para que sea estacionaria.
+
+```{r}
+ds1 <- diff(INPCts, lag=12)
+
+autoplot(ds1)
+```
+
+#### Con el analisis grafico podemos concluir que se requiere una diferencia estacional (D=1)
+
+#### Un modelo arima para una serie estacional se compone una parte regular (p,dq) y una parte estacional (P,D,Q)
+
+#### Para analizar la estacionariedad de nuestra serie podemos hacer la prueba Dickey - Fuller usamos la funcion adf.test()
+
+```{r}
+adf.test(ds1)
+```
+
+#### La hipotesis nula es que la serie de tiempo no es estacionaria, SI RECHAZO LA NULA, ES ESTACIONARIA, ESO ES LO QUE BUSCO La hipotesis alternativa es que la serie de tiempo es estacionaria En este caso el valor-p es de .01, el nivel de significancia es del 1% el valor-p es menor, por lo tanto rechazo Ho.
+
+#### Explicando los modelos ARIMA, Buscamos el nivel de la autocorrelacion dela serie para conocer la proporcion de AR y MA que aplicaremos en la serie ARIMA(Pdq) P=rezagos autorregresivos d= orden de integracion q= numero de medias moviles AR I MA Debo analizar la AUTOCORRELACION DE LA SERIE ESTACIONARIA (Correlacion de pearson contra periodos rezagados#40)
+
+#### Para analizar las autocorrelaciones usamos la funcion tsdisplay() Esta funcion me da graficas de barras
+
+#### ACF: Autocorrelacion, sirve para determinar el orden de media movil(q)
+
+#### PACF: Autocorrelacion parcial, sirve para determinar el orden
+
+#### autorregresivo(p) Para encontrar el orden p,P,q,Q, se debe analizar la autocorrelacion
+
+```{r}
+tsdisplay(ds1)
+```
+
+#### Las lineas fuera de el rango de lineas punteadas son correlaciones estadisticamente significantes Si estan dentro de los limites determinar cuantas estan fuera del intervalo (en este ) Debe empezar desde la primera correlacion
+
+#### p d q Regular P D Q Estacional
+
+#### --Regular--
+
+```         
+              Temporalidad de analisis
+                      1  2  3  4   5  6   etc
+```
+
+#### Autorregresivo: p=PACF 2
+
+#### --Diferencias: d= \# De veces que se diferenció la serie 1
+
+#### --Media movil: q=ACF 1
+
+#### ----Estacional--
+
+```         
+Temporalidad de analisis 12 24 36 48 56 64 etc
+```
+
+#### Autorregresivo: P=PACF 1
+
+#### Diferencias: D= #de veces que se diferenció la serie 1
+
+#### Media movil: Q=ACF 1
+
+```         
+                                 p d q   P D Q
+```
+
+#### Resultado de nuestro modelo: SARIMA(2,1,1) (1,1,1)
+
+#### En SARIMA se incluye el factor de reversion de estacionalidad, ademas de hacer la serie estacionaria. Hacemos el modelo:
+
+```{r}
+arima_inpc1 <- Arima(INPCts, order = c(2,1,1), seasonal = c(1,1,1)) 
+
+summary(arima_inpc1)
+```
+
+#### Probamos una segunda opcion del orden SARIMA con todos los componentes en orden uno de integracion:
+
+```{r}
+arima_inpc2 <- Arima(INPCts, order = c(1,1,1), seasonal = c(1,1,1)) 
+
+summary(arima_inpc2)
+```
+
+#### order = c(2,1,1), seasonal = c(1,1,1)) BIC= 75.11 RMSE= 0.2470109
+
+#### order = c(1,1,1), seasonal = c(1,1,1)) BIC= 75.49 RMSE= 0.2494079
+
+#### El Criterio de información bayesiano (BIC) tiene mayor peso de decision para seleccionar el mejor modelo que el factor RMSE. Por lo cual escogemos el primer modelo con menor BIC, SARIMA(2,1,1) (1,1,1)
+
+#### Hacemos el pronostico con la serie ya regularizada
+
+```{r}
+pron_arima <-  forecast(arima_inpc1, h=10)
+autoplot(pron_arima)
+```
+
+## Veamos las gráficas de los pronósticos futuros
+
+
+```{r}
+autoplot(INPCts)+
+  autolayer(pron_reg, PI=FALSE, series="Reg")+
+  autolayer(pron_SES, PI=FALSE, series="SES")+
+  autolayer(pron_holt, PI=FALSE, series="Holt")+
+  autolayer(pron_holta, PI=FALSE, series="Holta")+
+  autolayer(pron_hwa, PI=FALSE, series="HWa")+
+  autolayer(pron_arima, PI=FALSE, series="ARIMA")
+```
+
+### Despues de hacer los 7 metodos ditintos de pronósticos para la serie de tiempo del Indice de Precios al Consumidor
+
+### Graficaremos los modelos y compararemos lo pronosticado contra lo realmente observado para encontrar el más apto por su capacidad de pronóstico y menor error cuadrático medio.
+
+#### Vamos hacer un ejercicio de validacion de cruzada para los ultimos 64 meses.
+
+#### Vamos a cortar la serie de tiempo en dos partes:
+
+```{r}
+h <- 64
+modelo <- head(INPCts, length(INPCts)-h)
+prueba <- tail(INPCts, h)
+autoplot(INPCts)
+```
+
+##### Regresion Lineal:
+
+```{r}
+modeloreg <- tslm(modelo ~ trend + season)
+valid_reg <- forecast(modeloreg, h=h)
+
+
+```
+
+##### Suavizacion Exponencial Simple
+
+```{r}
+valid_SES <- ses(modelo, h=h)
+```
+
+##### Holt
+
+```{r}
+valid_holt <- holt(modelo, h=h)
+```
+
+##### Holt - amortiguado
+
+```{r}
+valid_holta <- holt(modelo, h=h, damped=TRUE)
+```
+
+##### Holt Winters aditiva:
+
+```{r}
+valid_hwa <- hw(modelo, h=h, seasonal = "additive")
+```
+
+##### SARIMA:
+
+```{r}
+modeloarima  <- Arima(modelo, order = c(2,1,1), seasonal = c(1,1,1)) 
+valid_arima <- forecast(modeloarima, h=h)
+summary(modeloarima)
+```
+
+## Cuarta Sección
+
+## Veamos las gráficas de los pronósticos comparados con lo observado de la serie
+
+## autolayer(valid_hwm, PI=FALSE, series="HWm")+
+
+```{r}
+autoplot(prueba)+
+  autolayer(valid_reg, PI=FALSE, series="Reg")+
+  autolayer(valid_SES, PI=FALSE, series="SES")+
+  autolayer(valid_holt, PI=FALSE, series="Holt")+
+  autolayer(valid_holta, PI=FALSE, series="Holta")+
+  autolayer(valid_hwa, PI=FALSE, series="HWa")+
+  autolayer(valid_arima, PI=FALSE, series="ARIMA")
+```
+
+##### Graficamente vemos que algunos pronosticos replican el comportamiento de la serie y otros. Necesitamos analizar el error, ya no el error de la estimacion, sino mas bien entre lo pronosticado y lo realmente observado de los ultimos 64 meses.
+
+```{r}
+accuracy(valid_reg, prueba)
+```
+
+```{r}
+accuracy(valid_SES, prueba)
+```
+
+```{r}
+accuracy(valid_holt, prueba)
+```
+
+```{r}
+accuracy(valid_holta, prueba)
+```
+
+```{r}
+accuracy(valid_hwa, prueba)
+```
+
+```{r}
+accuracy(valid_arima, prueba)
+```
+
+##### Segun el criterio de RMSE segun el training set el mejor modelo por tener menor medida de error es el modelo ARIMA. 0.2262960
+
+#### Conclusiones y aprendizajes:
+
+#### Consideramos que este proyecto pudo abarcar todos los conceptos vistos, de una forma integral se utilizaron los distintos modelos de pronostico, nos ayudo contar con la combinación de teoría y práctica de la mano para tener claro el concepto asi como su aplicación. En nuestro caso al tener una serie de tiempo de cierta forma ya diferenciada al ser datos de cambios porcentuales teniamos una serie que de primera instancia de forma visual hacía ruido, pudimos observar el como la forma de nuestra serie y sus cualidades afectaban al ser utilizadas para pronosticar usando modelos quizas no tan adecuados para ese tipo de serie, hasta encontrar el mejor para la serie (SARIMA) 
+#### Otro obstaculo con el que nos encontramos fue contar con datos negativos en la serie de tiempo, y al indagar más sobre el modelo que nos limitaba el pronostico de este tipo de datos, el caso de Holt Winters Multiplicativo, se optó por no considerarlo dentro de la comparativa y analisis posterior, nos damos cuenta que no todos los modelos se ajustaran o seran útiles para todo tipo de series y este fue el caso, no buscabamos segsar el pronóstico cambiando el signo del dato o eliminandolo como tal y consideramos como mejor opción trabajar con los otros 6 metodos conocidos.
+
+#### Nos quedamos con aprendizajes y orgullosos del resultado de los distintos metodos, al observar los bajos errores cuadraticos medios del training set y ver el gran parecido del comportamiento de la prueba observada con los datos pronosticados nos dio mayor confianza de tener pronosticos certeros para periodos futuros, al ser de tanta relevancia esta serie de indices de precios al consumidor (la cual afecta a todos los Mexicanos), pudimos aplicar un caso práctico y de importancia a lo visto en clase.
