@@ -1,0 +1,701 @@
+---
+title: "Financial Forecasts Project INPC"
+author: "Jero Zetina"
+date: "2024-11-13"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Financial Forecasts INPC Project
+
+#### First Section
+
+##### The objective of this project is to analyze a time series and to use
+
+##### different forecasting methods (seven in total) in order to find which one
+
+##### is most suitable and capable of making a reliable forecast, because of the nature
+
+##### of the data in the series and the characteristics and uses of the model.
+
+##### A series of Consumer Price Indexes was analyzed, the data are
+
+##### monthly percentage changes of the index against the previous period.
+
+##### The period is from January 2000 to September 2024 (298
+
+##### observations)
+
+##### With the results obtained we were able to conclude that the model with the most
+
+##### predictive capacity was SARIMA, our selection criterion was the squared error of
+
+##### selection criterion was the mean squared error, it is worth mentioning that we maintained
+
+##### a difference between the future forecast of the model, of the forecast
+
+##### compared with the data observed in the series, in this case with the last 64 periods or months.
+
+##### last 64 periods or months, in this way it is possible to compare the data
+
+##### data observed in the series against the forecast made by the model, and
+
+##### this helps us to have more certainty of the good performance of the method,
+
+##### also, in a visual way, it is possible to observe this similarity of
+
+##### behavior of the forecasts of the SARIMA model with that of our
+
+##### analyzed series, this tells us the high reliability of the method for this case.
+
+##### case.
+
+#### The graph of the model results against observed data:
+
+
+![](images/clipboard-3894698693.png)
+
+#### Model classification:
+
+![](images/clipboard-1826279982.png){width="481"}
+
+## Second Section
+
+##### Time Series Information:
+
+##### The time series corresponds to Mexico's National Consumer Price Index.
+
+##### Consumer Price Index (INPC) of Mexico, an indicator that measures the monthly percentage variation
+
+##### monthly percentage change in the prices of goods and services representative of household consumption.
+
+##### of household consumption. Units are in percentages,
+
+##### representing the relative change with respect to the immediately preceding period.
+
+##### Key information: Source: National Institute of Statistics and Geography.
+
+##### (INEGI). Definition: The CPI measures inflation, indicating changes in purchasing power and cost of living.
+
+##### purchasing power and cost of living. Period: 2000-2024. Context
+
+##### economic context: Average growth: During this period, the CPI has
+
+##### has shown an average monthly inflation rate of close to 0.4% (variable depending on the exact calculation).
+
+##### the exact calculation). Related historical events: 2008-2009: Global financial
+
+##### global financial crisis, increase in food and energy prices. 2017:
+
+##### Gasoline price liberalization (“gasolinazo”), driving the
+
+##### inflation. 2020: Pandemic of COVID-19, disruptions in supply and
+
+##### demand for goods, pressuring prices. 2022-2023: Effects of global
+
+##### global inflation, interest rate hikes by the Bank of Mexico.
+
+##### Mexico. These factors reflect how local and global events impact
+
+##### the CPI, showing sensitivity to fiscal policies, supply shocks,
+
+##### and significant economic changes.
+
+##### In 1968, the CPI formally began to be calculated by establishing
+
+##### for the first time a fixed basis for comparison.
+
+##### reference corresponds to the second half of July 2018. From its
+
+##### beginnings until June 2011, the National Price Indices were
+
+##### calculated by Banco de México, however, with the entry into force of the National System Law
+
+##### of the Law of the National System of Statistical and Geographical Information
+
+##### was granted to the National Institute of Statistics and Geography (INEGI).
+
+##### characteristics of this indicator are as follows: Basket- Goods and
+
+##### services consumed by households. Prices- At which the consumer
+
+##### acquires the goods and services they consume. Weighting Factor-
+
+##### Household spending. Weighting Source - National Survey of Household Income and Expenditure.
+
+##### Household Income and Expenditure Seasonal for a defined year. Number of
+
+##### Generic- 292 Scope of Analysis- Household Consumption.
+
+## Third Section
+
+##### Method codes and procedures:
+
+##### Linear Regression Smoothing Simple Exponential Smoothing: Holt and Holt -
+
+##### damped Seasonal Exponential Smoothing: Holt Winters additive and
+
+##### Holt Winters multiplicative ARIMA Seasonal ARIMA
+
+### We load the Data:
+
+```{r message=FALSE, warning=FALSE}
+rm(list=ls())
+
+library(tseries)
+library(tidyverse)
+library(readxl)
+library(forecast)
+
+setwd("C:/Users/GuJe834/Desktop/OneDrive/Documentos/1 Iteso/7to Semestre/Pronosticos Fin/ProyectoPronosticosFin")
+
+
+
+INPC_BD <- read_excel("SerieCPI%vspriorP.xlsx", sheet="2000")
+INPCts <- ts(INPC_BD$Index, start= c(2000,1), frequency = 12)
+```
+
+#### We plot the series:
+
+```{r}
+autoplot(INPCts)+
+  ggtitle("Consumer Price Index")
+```
+
+## Linear Regression:
+
+##### Linear regression is a statistical tool that allows to analyze
+
+##### the relationship between a dependent variable and one or more independent variables.
+
+##### independent variables. Its main objective is to develop a mathematical model
+
+##### mathematical model that explains how the independent variables affect the dependent variable
+
+##### dependent variable and, in turn, allows predictions to be made.
+
+![](images/clipboard-668878960.png){width="392"}
+##### Advantages:
+
+##### 1. Simplicity: It is easy to understand and interpret.
+
+##### 2. Predictability: Allows for reliable estimates under the right conditions.
+
+##### 3. Identification of relationships: Helps to quantify and understand how the independent variables affect the dependent variable.
+
+##### Disadvantages:
+
+##### 1. Sensitivity to assumptions: If model assumptions are not met, results may be erroneous.
+
+##### 2. Linearity: Only applicable if the relationship between yyy and xxx is approximately linear.
+
+##### 3. Influence of outliers: Extreme observations may distort the results.
+
+##### The series seems to show stationarity, however we are going to
+
+##### estimate a linear regression, modeling its trend and stationarity.
+
+##### stationarity:
+
+```{r}
+reg <- tslm(INPCts ~ trend + season)
+summary(reg)
+```
+
+##### Analyzing the results, we conclude that the linear regression can explain 44.2% of the variability in the series of consumer price changes, according to the value of its adjusted R-squared. However, this data is unreliable for forecasting due to the nature of the series and the limitations of the method, having as an effect a very low value of explanation.
+
+##### I wish to reject the null hypothesis of stationarity, we have several p-values lower than 1% significance levels, this tells us that if a series is significant we can conclude that there is stationarity.
+
+##### The trend is not significant since my p-value is greater than the three significance levels.
+
+##### We forecast 10 periods onwards:
+
+```{r}
+
+pron_reg <- forecast(reg, h=10)
+summary(pron_reg)
+```
+
+##### Graph the forecast
+
+```{r}
+autoplot(pron_reg)
+
+```
+
+## Exponential Smoothing.
+
+### Simple Exponential Smoothing:
+
+##### Simple exponential smoothing is a technique used to forecast time series without trend or seasonality, where the mean changes slowly over time.
+
+![](images/clipboard-2752235772.png){width="451"}
+
+##### Main characteristics:
+
+##### - Weight assignment: Grants greater weight to recent observations and progressively decreases the weight of older ones.
+
+##### - Continuous updating: Adjusts the level of the series as new data are incorporated, allowing to detect and reflect gradual changes in the level.
+
+##### - Specific use: It is suitable when the series does not show complex patterns such as trends or seasonalities.
+
+##### Advantages:
+
+##### 1. Simplicity: It is easy to implement and understand.
+
+##### 2. Immediate adaptation: It responds quickly to changes in the level of the series.
+
+##### Disadvantages:
+
+##### 1. Limitation in forecast horizon: It is only useful for forecasting the next immediate period (h = 1). For future periods (h \> 1), the forecast becomes constant or “flat”.
+
+##### We perform the forecasts and see the results:
+
+```{r}
+pron_SES <- ses(INPCts, h=10)
+summary(pron_SES)
+```
+
+### Holt or Exponential Smoothing with Trend:
+
+##### Holt's method, or double exponential smoothing, is used to forecast time series that exhibit a linear trend, where both the level and growth rate change over time.
+
+![](images/clipboard-3550002694.png){width="497"}
+
+##### Main features:
+
+##### - Suitable for data without seasonality: works best when there are no seasonal patterns, but a consistent trend.
+
+##### Advantages:
+
+##### 1. Greater robustness: It is more flexible than simple exponential smoothing, as it considers trends.
+
+##### 2. Clear forecasts: Useful for series with clear trends and for short-term projections.
+
+##### Disadvantages:
+
+##### 1. Infinite trend: The model assumes that the trend will continue indefinitely, which is not always realistic for long horizons.
+
+##### 2. Limited in complex scenarios: Not suitable for series with abrupt changes or seasonal components.
+
+```{r}
+pron_holt <- holt(INPCts, h=10) 
+summary(pron_holt)
+```
+
+### Holt Damped or Exponential Smoothing with Damped Trend:
+
+##### The exponential smoothing method with damped trend is a variant of Holt's method, designed to forecast time series with a trend that will not remain constant in the future. In this model, the initial trend is progressively adjusted by a damping factor to avoid infinite increases or decreases.
+
+![](images/clipboard-1211615005.png)
+##### Main features:
+
+##### - Trend damping: The growth rate is slowed over time by a damping parameter ϕϕϕphiϕ, where 0ϕ<ϕ<10ϕiϕ, where 0ϕ<ϕ10ϕiϕ, where 0ϕ<ϕ10ϕiϕ, where 0ϕ<ϕ1ϕiϕ.
+
+##### - More realistic forecasts: The method assumes that the trend will gradually decrease rather than extend indefinitely.
+
+##### Advantages:
+
+##### 1. Avoids unrealistic trends: Damping means that the trend does not grow or decline indefinitely, which is more suitable for many time series.
+
+##### 2. Adaptability: Useful for series with an initial trend that is likely to decelerate or plateau.
+
+##### 3. More accurate projections: Tends to generate more accurate forecasts in scenarios where the trend decreases over time.
+
+##### Disadvantages:
+
+##### 1. Sensitivity to the damping parameter: If ϕ\phiϕ is close to 1, the model behaves like the Holt method without damping, losing its main advantage.
+
+##### 2. Increased complexity: Its implementation requires a proper calibration of ϕ\phiϕ, α\alphaα and β\betaβ, which may complicate its use.
+
+
+```{r}
+pron_dholt <- holt(INPCts, h=10, damped= TRUE) 
+summary(pron_dholt)
+```
+
+##### We plot the forecasts and compare them:
+```{r}
+autoplot(pron_SES, PI=FALSE,series="Simple")+
+  autolayer(pron_holt, PI=FALSE, series="Holt")+
+  autolayer(pron_dholt, PI=FALSE, series="DHolt")
+
+```
+
+##### The 4 models gave us forecasts for the next 10 periods, taking the last period, in this case July 2025 with a confidence level of 95%, we can say that the percentage change forecasts for this data will be:
+
+![](images/clipboard-4245856047.png)
+
+## Seasonal Exponential Smoothing---# ----Seasonal Exponential Smoothing---
+
+##### Includes Seasonal Exponential Smoothing Additive and Multiplicative.
+
+##### Multiplicative, their attributes are explained below:
+
+##### Let's do a graphical analysis to determine if there is seasonality or not. Functions ggseasonplot() and ggsubseriesplot() plot graphs to identify seasonal patterns.
+
+
+```{r}
+
+ggseasonplot(INPCts)+
+  ggtitle("Consumer Price Index")
+```
+
+```{r}
+ggsubseriesplot(INPCts)+
+  ggtitle("Consumer Price Index")
+```
+
+##### We will use methods to decompose the elements of the series and to find the autocorrelation of the series with its lagged values.
+
+##### Seasonal decomposition plot and autocorrelation plot (ACF Plot)
+
+##### A seasonal decomposition plot separates the data into trend, seasonality and residual components. Methods such as the decompose() function are used for this purpose.
+
+##### An autocorrelation plot shows the correlation of the time series with its own lagged values. If seasonality is present, peaks will be seen in the ACF plot at regular lag intervals.
+
+##### Seasonal Decomposition Plot for the CPI
+
+```{r}
+INPC_decomposed <- decompose(INPCts, type = "multiplicative")  # or 'additive'
+plot(INPC_decomposed)
+```
+
+##### ACF Plot for INPC
+
+```{r}
+acf(INPCts, main = "ACF Plot of INPC")
+```
+
+##### Conclusion: There is seasonality in the Consumer Price Index series. We can see it graphically in these tools, for example in the “seasonality” decompose function, it follows a pattern of movements during the series.
+
+#### We forecast the Exponential Smoothing methods with Seasonality and see the results.
+
+### Holt Winters Additive:
+
+##### The Holt-Winters additive method is an exponential smoothing technique designed for time series with constant stationarity over time. It is especially useful when the series has a linear trend and a seasonal pattern whose magnitude does not change significantly.
+
+![](images/clipboard-1768344195.png)
+
+##### Main characteristics:
+
+##### - Additive seasonality: The seasonal pattern is expressed in absolute terms and is added to or subtracted from the base level of the series.
+
+##### - Series decomposition: The series is divided into three components:
+
+##### 1. Level: Represents the average value adjusted for seasonality.
+
+##### 2. Trend: Captures the constant change in the level.
+
+##### 3. Seasonality: A repeating pattern that sums to approximately zero in a year.
+
+##### - Adequacy: Ideal for series where seasonal effects remain stable, regardless of changes in level or trend.
+
+##### Advantages:
+
+##### 1. Simplicity: Allows seasonal effects to be easily incorporated.
+
+##### 2. Efficiency: Works well for series with constant seasonal variations.
+
+##### Disadvantages:
+
+##### 1. Larger amount of data: Requires sufficient data to estimate seasonal factors accurately.
+
+##### 2. Less common: Series with additive seasonality tend to be less frequent compared to those with multiplicative seasonality.
+
+```{r}
+ pron_hwa <- hw(INPCts, h=10, seasonal="additive") 
+summary(pron_hwa)
+```
+
+### Multiplicative Holt-Winters:
+
+##### The Holt-Winters multiplicative method is an exponential smoothing technique used for time series with increasing seasonality proportional to the level of the series. It is ideal for series where the magnitude of the seasonal pattern increases as the mean increases.
+
+![](images/clipboard-1280714228.png)
+
+##### Main characteristics:
+
+##### - Multiplicative seasonality: The seasonal component is expressed as a percentage or relative factor, rather than an absolute value.
+
+##### - Decomposition of the series:
+
+##### 1. Level: Adjusted by dividing by the seasonal component.
+
+##### 2. Trend: Represents the constant change in level.
+
+##### 3. Seasonality: A pattern that scales with the level of the series.
+
+##### - Fit: Recommended for series with linear trend and a seasonal pattern whose magnitude grows with the level.
+
+##### Advantages:
+
+##### 1. Adaptation to increasing patterns: Efficiently handles series where seasonal effects increase proportionally to the growth of the mean.
+
+##### 2. Flexibility: More useful than the additive method in series with amplified seasonal variations.
+
+##### Disadvantages:
+
+##### 1. Higher data demand: Requires significant amount of data to accurately estimate seasonal factors.
+
+
+INPCts <- na.omit(INPCts)
+pron_hwm <- hw(INPCts, h=10, seasonal=“multiplicative”)
+ Error in ets(x, “MAM”, alpha = alpha, beta = beta,
+gamma = gamma, phi = phi, : Inappropriate model for data with negative
+or zero values
+
+#### The additive model had no problems to make the forecast, since it had a series of percentage changes and negative data, the Holt Winters Multiplicative model cannot treat these data, eliminating these data would bias the forecast, so it was decided not to use this method. 
+
+## ARIMA
+
+##### SARIMA models are an extension of ARIMA models designed to work with time series that exhibit seasonality, i.e., patterns that repeat periodically (such as monthly or quarterly). They are used to generate more accurate financial forecasts when seasonal components are identified in the data.
+
+##### Main characteristics:
+
+##### - Seasonal differencing: used to convert a series with seasonality into stationary by calculating the difference between an observation and the corresponding observation from the same period of the previous year.
+
+#### Advantages:
+
+#### 1. High accuracy in short-term forecasts.
+
+#### 2. Flexibility to represent different characteristics of the time series.
+
+#### 3. Possibility of incorporating seasonality explicitly.
+
+#### Disadvantages:
+
+#### 1. Require a lot of data: Seasonal series need at least 6-10 years of observations.
+
+#### 2. Complexity of fit: Building and updating these models can be laborious.
+
+#### 3. High implementation costs: They require greater investment in time and resources compared to simple methods such as exponential smoothing.
+
+#### In order to apply the SARIMA model we must have a stationary time series, this is one whose properties such as mean, variance, etc., remain constant over time. In other words, it is a series whose statistical properties are independent of the time at which they are observed. A stationary time series has a constant variance and always returns to the long-run mean.
+
+#### We apply a seasonal difference Let's find the order of integration = how many times we must differentiate it to be stationary.
+
+```{r}
+ds1 <- diff(INPCts, lag=12)
+
+autoplot(ds1)
+```
+
+#### From the graphical analysis we can conclude that a seasonal difference (D=1) is required.
+
+#### An arima model for a seasonal series consists of a regular part (p,dq) and a seasonal part (P,D,Q).
+
+#### To analyze the stationarity of our series we can do the Dickey - Fuller test we use the function adf.test()
+
+```{r}
+adf.test(ds1)
+```
+
+#### The null hypothesis is that the time series is not stationary, IF I REJECT THE NULL, IT IS STATIONARY, THAT IS WHAT I AM LOOKING FOR The alternative hypothesis is that the time series is stationary In this case the p-value is .01, the significance level is 1% the p-value is lower, therefore I reject Ho.
+
+#### Explaining the ARIMA models, we look for the level of autocorrelation of the series to know the ratio of AR and MA that we will apply in the ARIMA series(Pdq) P= autoregressive lags d= order of integration q= number of moving averages AR I MA I must analyze the AUTOCORRELATION OF THE STATIONARY SERIES (Pearson's correlation against lagged periods#40)
+
+#### To analyze the autocorrelations we use the function tsdisplay() This function gives me bar charts
+
+#### ACF: Autocorrelation, used to determine the order of moving average(q)
+
+#### PACF: Partial autocorrelation, used to determine the order of the moving average(q).
+
+#### autoregressive(p) To find the order p,P,q,Q, the autocorrelation must be analyzed.
+
+```{r}
+tsdisplay(ds1)
+```
+
+#### Lines outside the range of dashed lines are statistically significant correlations If they are within the limits determine how many are outside the interval (in this one) You must start from the first correlation.
+
+#### p d q Regular P D Q Seasonal
+
+#### --Regular--
+
+```         
+              Timing of analysis
+                      1 2 3 4 5 6 etc
+```
+
+#### Autoregressive: p=PACF 2
+
+#### --Differences: d= \# Times series 1 was differenced
+
+#### --Moving average: q=ACF 1
+
+#### ----Estational--
+
+```         
+Temporality of analysis 12 24 24 36 48 56 64 etc.
+```
+
+#### Autoregressive: P=PACF 1
+
+#### Differences: D= #of times series 1 differenced.
+
+#### Moving average: Q=ACF 1
+
+```         
+                                 p d q P D Q
+```
+
+#### Result of our model: SARIMA(2,1,1,1) (1,1,1)
+
+#### In SARIMA we include the seasonality reversal factor, in addition to making the series stationary. We make the model:
+
+```{r}
+arima_inpc1 <- Arima(INPCts, order = c(2,1,1), seasonal = c(1,1,1)) 
+
+summary(arima_inpc1)
+```
+
+#### We try a second SARIMA order option with all components in order one of integration:
+
+```{r}
+arima_inpc2 <- Arima(INPCts, order = c(1,1,1), seasonal = c(1,1,1)) 
+
+summary(arima_inpc2)
+```
+
+#### order = c(2,1,1), seasonal = c(1,1,1)) BIC= 75.11 RMSE= 0.2470109
+
+#### order = c(1,1,1), seasonal = c(1,1,1)) BIC= 75.49 RMSE= 0.2494079
+
+#### The Bayesian Information Criterion (BIC) has a higher decision weight for selecting the best model than the RMSE factor. Therefore we choose the first model with the lowest BIC, SARIMA(2,1,1) (1,1,1).
+
+#### We make the forecast with the series already regularized
+
+```{r}
+pron_arima <- forecast(arima_inpc1, h=10)
+autoplot(pron_arima)
+```
+
+## Let's see the plots of the future forecasts
+
+
+
+```{r}
+autoplot(INPCts)+
+  autolayer(pron_reg, PI=FALSE, series="Reg")+
+  autolayer(pron_SES, PI=FALSE, series="SES")+
+  autolayer(pron_holt, PI=FALSE, series="Holt")+
+  autolayer(pron_dholt, PI=FALSE, series="DHolt")+
+  autolayer(pron_hwa, PI=FALSE, series="HWa")+
+  autolayer(pron_arima, PI=FALSE, series="ARIMA")
+
+```
+
+
+
+### After doing the 7 different forecasting methods for the time series of the Consumer Price Index
+
+### We will plot the models and compare the forecasted versus the actually observed to find the most suitable one for its forecasting ability and lowest mean squared error.
+
+#### Let's do a cross-validation exercise for the last 64 months.
+
+#### Let's cut the time series into two parts:
+
+```{r}
+h <- 64
+model <- head(INPCts, length(INPCts)-h)
+test <- tail(INPCts, h)
+autoplot(INPCts)
+```
+
+##### Linear Regression:
+
+```{r}
+modelreg <- tslm(model ~ trend + season)
+valid_reg <- forecast(modelreg, h=h)
+
+
+```
+
+##### Simple Exponential Smoothing
+
+```{r}
+valid_SES <- ses(model, h=h)
+```
+
+##### Holt
+
+```{r}
+valid_holt <- holt(model, h=h)
+```
+
+##### Holt - damped
+
+```{r}
+valid_dholt <- holt(model, h=h, damped=TRUE)
+```
+
+##### Holt Winters additive:
+
+```{r}
+valid_hwa <- hw(model, h=h, seasonal = 'additive')
+
+```
+
+
+##### SARIMA:
+
+```{r}
+modelarima <- Arima(model, order = c(2,1,1), seasonal = c(1,1,1)) 
+valid_arima <- forecast(modelarima, h=h)
+summary(modelarima)
+```
+
+## Fourth Section
+
+## Let's see the plots of the forecasts compared to the observed series
+
+## autolayer(valid_hwm, PI=FALSE, series=“HWm”)+
+
+```{r}
+autoplot(test)+
+  autolayer(valid_reg, PI=FALSE, series='Reg')+ 
+  autolayer(valid_SES, PI=FALSE, series='SES')+
+  autolayer(valid_holt, PI=FALSE, series='Holt')+
+  autolayer(valid_dholt, PI=FALSE, series='DHolt')+
+  autolayer(valid_hwa, PI=FALSE, series='HWa')+ 
+  autolayer(valid_arima, PI=FALSE, series='ARIMA')
+```
+
+##### Graphically we see that some forecasts replicate the behavior of the series and others. We need to analyze the error, not the error of the estimate, but rather the error between the forecast and the actual observed for the last 64 months.
+
+```{r}
+accuracy(valid_reg, test)
+```
+
+```{r}
+accuracy(valid_SES, test)
+```
+
+```{r}
+accuracy(valid_dholt, test)
+```
+
+```{r}
+accuracy(valid_holt, test)
+```
+
+```{r}
+accuracy(valid_hwa, test)
+```
+
+```{r}
+accuracy(valid_arima, test)
+```
+
+##### According to the RMSE criterion according to the training set the best model for having the lowest error measure is the ARIMA model. 0.2262960
+
+#### Conclusions and lessons learned:
+
+#### We consider that this project was able to cover all the concepts seen, in an integral way the different forecasting models were used, it helped us to have the combination of theory and practice hand in hand to be clear about the concept as well as its application. In our case, having a time series in a certain way already differentiated by being data of percentage changes, we had a series that at first sight made noise, we were able to observe how the shape of our series and its qualities affected when used for forecasting using the model.
